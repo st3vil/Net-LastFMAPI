@@ -5,22 +5,27 @@ use warnings;
 use v5.10;
 use LWP::UserAgent;
 use Digest::MD5 'md5_hex';
+use JSON::XS;
 use URI;
 
 our $url = 'http://ws.audioscrobbler.com/2.0/';
 our $api_key = 'dfab9b1c7357c55028c84b9a8fb68880';
 our $secret = 'd004c86dcfa8ef4c3977b04f558535f2';
+our $session_key; # see get_session_key()
 our $ua = new LWP::UserAgent(agent => "LastFuckingM/-666");
+our $json = 0;
 
 our $sk_symlink = "$ENV{HOME}/.last-fucking-m-sessionkey";
-sub load_key {
-    return readlink($sk_symlink);
-}
-sub save_key {
+sub load_save_sessionkey {
     my $key = shift;
-    symlink($key, $sk_symlink);
+    if ($key) {
+        symlink($key, $sk_symlink)
+    }
+    else {
+        $key = readlink($sk_symlink);
+    }
+    $session_key = $key;
 }
-our $sk = load_key();
 
 our $methods = {
     'album.addTags' => { auth => 1, post => 1, signed => 1 },
@@ -161,6 +166,7 @@ sub req {
     my ($method, %params) = @_;
     $params{method} = $method;
     $params{api_key} = $api_key;
+    $params{format} ||= "json" if $json;
 
     sessionise(\%params);
 
@@ -176,37 +182,58 @@ sub req {
         $res = $ua->get($uri);
     }
 
+    $params{format} ||= "xml";
     my $content = $res->decoded_content;
-    unless ($res->is_success && $content =~ /<lfm status="ok">/) {
+    unless ($res->is_success &&
+        ($params{format} ne "xml" || $content =~ /<lfm status="ok">/)) {
         $DB::single = 1;
         die "Something went wrong:\n$content";
     }
-    return $content;
+    if ($params{format} eq "json") {
+        return decode_json($content);
+    }
+    else {
+        return $content;
+    }
 }
 
 sub sessionise {
     my $params = shift;
     return unless $methods->{$params->{method}}->{auth};
-    $params->{sk} = $sk ||= do {
-        my $res = req("auth.gettoken");
+    $params->{sk} = get_session_key();
+}
+
+sub get_session_key {
+    unless (defined $session_key) {
+        load_save_sessionkey()
+    }
+    unless (defined $session_key) {
+        my $res = req("auth.gettoken", format => "xml");
 
         my ($token) = $res =~ m{<token>(.+)</token>}
             or die "no foundo token: $res";
-        say "Sorry about this but could you go over here: "
-            ."http://www.last.fm/api/auth/?api_key="
-            .$api_key."&token=".$token;
-        say "Hit enter to continue...";
-        <STDIN>;
 
-        my $sess = req("auth.getSession", token => $token);
+        talk_authorisation($token);
+
+        my $sess = req("auth.getSession", token => $token, format => "xml");
 
         my ($name) = $sess =~ m{<name>(.+)</name>}
             or die "no name!? $sess";
         my ($key) = $sess =~ m{<key>(.+)</key>}
             or die "no key!? $sess";
-        save_key($key)
-        $key
-    };
+
+        load_save_sessionkey();
+    }
+    return $session_key || die "unable to acquire session key...";
+}
+
+sub talk_authorisation {
+    my $token = shift;
+    say "Sorry about this but could you go over here: "
+        ."http://www.last.fm/api/auth/?api_key="
+        .$api_key."&token=".$token;
+    say "Hit enter to continue...";
+    <STDIN>;
 }
 
 sub sign {
