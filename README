@@ -1,0 +1,15 @@
+### LastFuckingM - A LastFM API
+
+```perl
+my $xml = LastFuckingM::req("artist.getSimilar", artist => "Robbie Basho");
+
+$LastFuckingM::json = 1;
+my $data = LastFuckingM::req("artist.getSimilar", artist => "Robbie Basho");
+```
+
+* Will do authorisation when required, see below
+* Knows how to POST methods when necessary (eg track.scrobble)
+* Returns XML or a data structure from JSON (
+
+Gives a link to the user to authorise its own session and saves it for the future.
+This could be done differently by altering various subroutines in a subclass or whatever.
