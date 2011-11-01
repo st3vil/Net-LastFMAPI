@@ -1,11 +1,9 @@
-### LastFuckingM - A LastFM API
+LastFuckingM - LastFM API 2.0
 
-```perl
-my $xml = LastFuckingM::req("artist.getSimilar", artist => "Robbie Basho");
+  my $xml = LastFuckingM::req("artist.getSimilar", artist => "Robbie Basho");
 
-$LastFuckingM::json = 1;
-my $data = LastFuckingM::req("artist.getSimilar", artist => "Robbie Basho");
-```
+  $LastFuckingM::json = 1;
+  my $data = LastFuckingM::req(...);
 
 * Will do authorisation when required, see below
 * Knows how to POST methods when necessary (eg track.scrobble)
