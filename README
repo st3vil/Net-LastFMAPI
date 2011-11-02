@@ -1,12 +1,26 @@
-LastFuckingM - LastFM API 2.0
+README for Net::LastFMAPI
+=========================
 
-  my $xml = LastFuckingM::req("artist.getSimilar", artist => "Robbie Basho");
+Functions for interacting with the LastFM API version 2.0.
 
-  $LastFuckingM::json = 1;
-  my $data = LastFuckingM::req(...);
+Installing
+----------
+The application is designed to be installed like a CPAN module; so use
+the usual:
 
-* Will do authorisation when required, see below
-* Knows how to POST methods when necessary (eg track.scrobble)
+  perl Makefile.PL
+  make
+  sudo make install
 
-Gives a link to the user to authorise its own session and saves it for the future.
-This could be done differently by altering various subroutines in a subclass or whatever.
+The CPAN module dependencies will be highlighted during the first
+command. If you do not have 'sudo' installed, you can use:
+
+  su root -c make install
+
+License and credits
+-------------------
+   Copyright (c) 2011, Steev Eeeriumn. All Rights Reserved.
+ This module is free software. It may be used, redistributed
+and/or modified under the terms of the Perl Artistic License
+     (see http://www.perl.com/perl/misc/Artistic.html)
+

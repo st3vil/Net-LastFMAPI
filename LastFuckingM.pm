@@ -8,6 +8,7 @@ use JSON::XS;
 use URI;
 use Exporter 'import';
 our @EXPORT = ('lastfm');
+use Carp;
 
 our $VERSION = 0.4;
 our $url = 'http://ws.audioscrobbler.com/2.0/';
@@ -174,7 +175,7 @@ sub lastfm {
             while (my ($k,$v) = each %$p) {
                 $params{$k."[".$i."]"} = $v;
             }
-            die "too multitudinous (limit 50)" if $i > 49;
+            croak "too multitudinous (limit 50)" if $i > 49;
             $i++
         }
         else {
@@ -187,7 +188,7 @@ sub lastfm {
     delete $params{format} if $params{format} && $params{format} eq "xml";
 
     unless (exists $methods->{$method}) {
-        warn "method $method is not known to Net::LastFMAPI, continuing anyway.\n"
+        carp "method $method is not known to Net::LastFMAPI"
     }
 
     sessionise(\%params);
@@ -209,7 +210,7 @@ sub lastfm {
     unless ($res->is_success &&
         ($params{format} ne "xml" || $content =~ /<lfm status="ok">/)) {
         $DB::single = 1;
-        die "Something went wrong:\n$content";
+        croak "Something went wrong:\n$content";
     }
     if ($params{format} eq "json") {
         return decode_json($content);
@@ -336,7 +337,7 @@ Steev Eeeriumn
 
 =head1 COPYRIGHT
 
-   Copyright (c) 2011, Steev Eeeiumn. All Rights Reserved.
+   Copyright (c) 2011, Steev Eeeriumn. All Rights Reserved.
  This module is free software. It may be used, redistributed
 and/or modified under the terms of the Perl Artistic License
      (see http://www.perl.com/perl/misc/Artistic.html)
