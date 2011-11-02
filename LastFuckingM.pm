@@ -1,5 +1,4 @@
 package LastFuckingM;
-# partial interface to lastfm's new orifice
 use strict;
 use warnings;
 use v5.10;
@@ -13,6 +12,7 @@ our $api_key = 'dfab9b1c7357c55028c84b9a8fb68880';
 our $secret = 'd004c86dcfa8ef4c3977b04f558535f2';
 our $session_key; # see get_session_key()
 our $ua = new LWP::UserAgent(agent => "LastFuckingM/-666");
+our $username; # not important
 our $json = 0;
 
 our $sk_symlink = "$ENV{HOME}/.last-fucking-m-sessionkey";
@@ -209,24 +209,33 @@ sub get_session_key {
         load_save_sessionkey()
     }
     unless (defined $session_key) {
-        my $res = req("auth.gettoken", format => "xml");
-
-        my ($token) = $res =~ m{<token>(.+)</token>}
-            or die "no foundo token: $res";
-
-        talk_authorisation($token);
-
-        my $sess = req("auth.getSession", token => $token, format => "xml");
-
-        my ($name) = $sess =~ m{<name>(.+)</name>}
-            or die "no name!? $sess";
-        my ($key) = $sess =~ m{<key>(.+)</key>}
-            or die "no key!? $sess";
-
-        load_save_sessionkey();
+        my $key;
+        eval { $key = request_session(); };
+        if ($@) {
+            die "--- Died while making requests to get a session:\n$@";
+        }
+        load_save_sessionkey($key);
     }
     return $session_key || die "unable to acquire session key...";
 }
+
+sub request_session {
+    my $res = req("auth.gettoken", format => "xml");
+
+    my ($token) = $res =~ m{<token>(.+)</token>}
+        or die "no foundo token: $res";
+
+    talk_authorisation($token);
+
+    my $sess = req("auth.getSession", token => $token, format => "xml");
+
+    ($username) = $sess =~ m{<name>(.+)</name>}
+        or die "no name!? $sess";
+    my ($key) = $sess =~ m{<key>(.+)</key>}
+        or die "no key!? $sess";
+    return $key;
+}
+
 
 sub talk_authorisation {
     my $token = shift;
