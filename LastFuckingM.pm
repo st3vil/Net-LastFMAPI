@@ -7,7 +7,7 @@ use Digest::MD5 'md5_hex';
 use JSON::XS;
 use URI;
 use Exporter 'import';
-@EXPORT = ('lastfm');
+our @EXPORT = ('lastfm');
 
 our $VERSION = 0.4;
 our $url = 'http://ws.audioscrobbler.com/2.0/';
@@ -186,6 +186,10 @@ sub lastfm {
     $params{format} ||= "json" if $json;
     delete $params{format} if $params{format} && $params{format} eq "xml";
 
+    unless (exists $methods->{$method}) {
+        warn "method $method is not known to Net::LastFMAPI, continuing anyway.\n"
+    }
+
     sessionise(\%params);
 
     sign(\%params);
@@ -283,6 +287,15 @@ Net::LastFMAPI - LastFM API 2.0
 
   $Net::LastFMAPI::json = 1;
   my $data = lastfm(...); # decodes it for you
+
+  # sets up a session/gets authorisation when needed for write actions:
+  my $res = lastfm(
+      "track.scrobble",
+      artist => "Robbie Basho",
+      track => "Wounded Knee Soliloquy",
+      timestamp => time(),
+  );
+  $success = $res =~ m{<scrobbles accepted="1"};
 
 =head1 DESCRIPTION
 
