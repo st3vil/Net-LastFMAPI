@@ -167,6 +167,7 @@ sub req {
     $params{method} = $method;
     $params{api_key} = $api_key;
     $params{format} ||= "json" if $json;
+    delete $params{format} if $params{format} && $params{format} eq "xml";
 
     sessionise(\%params);
 
