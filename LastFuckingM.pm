@@ -166,7 +166,21 @@ our $methods = {
 };
 
 sub lastfm {
-    my ($method, %params) = @_;
+    my ($method, @params) = @_;
+    my %params;
+    my $i = 0;
+    while (my $p = shift @params) {
+        if (ref $p eq "HASH") {
+            while (my ($k,$v) = each %$p) {
+                $params{$k."[".$i."]"} = $v;
+            }
+            die "too multitudinous (limit 50)" if $i > 49;
+            $i++
+        }
+        else {
+            $params{$p} = shift @params;
+        }
+    }
     $params{method} = $method;
     $params{api_key} = $api_key;
     $params{format} ||= "json" if $json;
