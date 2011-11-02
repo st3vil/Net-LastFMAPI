@@ -6,17 +6,20 @@ use LWP::UserAgent;
 use Digest::MD5 'md5_hex';
 use JSON::XS;
 use URI;
+use Exporter 'import';
+@EXPORT = ('lastfm');
 
+our $VERSION = 0.4;
 our $url = 'http://ws.audioscrobbler.com/2.0/';
 our $api_key = 'dfab9b1c7357c55028c84b9a8fb68880';
 our $secret = 'd004c86dcfa8ef4c3977b04f558535f2';
-our $session_key; # see get_session_key()
-our $ua = new LWP::UserAgent(agent => "LastFuckingM/-666");
+our $session_key; # see load_save_sessionkey()
+our $ua = new LWP::UserAgent(agent => "Net::LastFMAPI/$VERSION");
 our $username; # not important
 our $json = 0;
 
-our $sk_symlink = "$ENV{HOME}/.last-fucking-m-sessionkey";
-sub load_save_sessionkey {
+our $sk_symlink = "$ENV{HOME}/.net-lastfmapi-sessionkey";
+sub load_save_sessionkey { # see get_session_key()
     my $key = shift;
     if ($key) {
         symlink($key, $sk_symlink)
@@ -162,7 +165,7 @@ our $methods = {
     'venue.search' => {  },
 };
 
-sub req {
+sub lastfm {
     my ($method, %params) = @_;
     $params{method} = $method;
     $params{api_key} = $api_key;
@@ -220,14 +223,14 @@ sub get_session_key {
 }
 
 sub request_session {
-    my $res = req("auth.gettoken", format => "xml");
+    my $res = lastfm("auth.gettoken", format => "xml");
 
     my ($token) = $res =~ m{<token>(.+)</token>}
         or die "no foundo token: $res";
 
     talk_authorisation($token);
 
-    my $sess = req("auth.getSession", token => $token, format => "xml");
+    my $sess = lastfm("auth.getSession", token => $token, format => "xml");
 
     ($username) = $sess =~ m{<name>(.+)</name>}
         or die "no name!? $sess";
@@ -253,5 +256,61 @@ sub sign {
     my $hash = md5_hex($jumble.$secret);
     $params->{api_sig} = $hash;
 }
+__END__
 
-1
+=head1 NAME
+
+Net::LastFMAPI - LastFM API 2.0
+
+=head1 SYNOPSIS
+
+  use Net::LastFMAPI;
+  my $xml = lastfm("artist.getSimilar", artist => "Robbie Basho");
+
+  $Net::LastFMAPI::json = 1;
+  my $data = lastfm(...); # decodes it for you
+
+=head1 DESCRIPTION
+
+Makes requests to http://ws.audioscrobbler.com/2.0/ and returns the result.
+
+Takes care of POSTing to write methods, doing authorisation when needed.
+
+Dies upon error.
+
+Will create an authorised session when needed, so unless you alter the subroutine
+B<talk_authentication> it will print instructions to visit a link in your browser
+to authorise itself with whoever is logged in.
+
+After creating that session it is saved in the symlink
+B<$ENV{HOME}/.net-lastfmapi-sessionkey>, you could alter B<load_save_sessionkey>
+to make this happen another way.
+
+Setting B<$Net::LastFMAPI::json> to a true value will automatically add
+B<format =E<gt> "json"> to every request AND decode the result into perl data for you.
+Not all methods support JSON.
+
+=head1 SEE ALSO
+
+L<Net::LastFM> doesn't handle sessions for you, won't POST to write methods
+
+These are for the 1.2 API which is deprecated and I had no luck with them:
+L<WebService::LastFM>
+L<Music::Audioscrobbler::Submit>
+L<Net::LastFM::Submission>
+
+=head1 BUGS/CODE
+
+L<https://github.com/st3vil/net-lastfmapi>
+
+=head1 AUTHOR
+
+Steev Eeeriumn
+
+=head1 COPYRIGHT
+
+   Copyright (c) 2011, Steev Eeeiumn. All Rights Reserved.
+ This module is free software. It may be used, redistributed
+and/or modified under the terms of the Perl Artistic License
+     (see http://www.perl.com/perl/misc/Artistic.html)
+
