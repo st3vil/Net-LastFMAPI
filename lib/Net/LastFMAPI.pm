@@ -1,4 +1,4 @@
-package LastFuckingM;
+package Net::LastFMAPI;
 use strict;
 use warnings;
 use v5.10;
