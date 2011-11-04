@@ -6,6 +6,8 @@ use File::Slurp;
 use lib "$ENV{HOME}/pquery-pm/lib";
 use pQuery;
 
+my $file = "lib/Net/LastFMAPI.pm";
+-f $file or die "where's the $file at?";
 
 my @methods;
 pQuery("http://www.last.fm/api/intro")
@@ -13,7 +15,7 @@ pQuery("http://www.last.fm/api/intro")
 ->each(sub{
     sleep 1;
     $_ = pQuery($_)->html;
-    say "link: $_";
+    say "studying: $_";
     m{<a href="(/api/show/\?service=\d+)">(.+)</a>} || die "not <a>: $_";
     my $method = $2;
     $_ = pQuery("http://www.last.fm$1")->find("div#wsdescriptor")->html;
@@ -30,7 +32,7 @@ pQuery("http://www.last.fm/api/intro")
 
 
 my @new;
-my @old = read_file("LastFuckingM.pm");
+my @old = read_file($file);
 push @new, shift @old until $new[-1] =~ /^my \$methods = {/;
 say shift @old until $old[0] =~ /^};/;
 
@@ -39,6 +41,6 @@ for my $m (@methods) {
     push @new, sprintf("    '%s' => { %s },\n", $m->{method}, $attributes);
 }
 push @new, @old;
-write_file("LastFuckingM.pm", @new);
+write_file($file, @new);
 
 say "done.";

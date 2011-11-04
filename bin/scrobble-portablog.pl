@@ -1,14 +1,22 @@
 #!/usr/bin/perl
-# submit scrobbles
+# submit scrobbles from a scrobbler.log
+# format as per http://www.audioscrobbler.net/wiki/Portable_Player_Logging
 use strict;
 use warnings;
 use v5.10;
 use File::Slurp;
-use LastFuckingM;
+use lib "../lib";
+use Net::LastFMAPI;
 
-my $bullytime = 0 if "@ARGV" =~ /bullshit-timestamps/;
+my $bullytime;
+my $file = "../scrobbler.log";
+for (@ARGV) {
+    $bullytime = 0 if /bullshit-timestamps/;
+    $file = $_ if -f $_;
+}
+-f $file or die "no such file: $file\n";
 
-my @log = read_file('../scrobbler.log');
+my @log = read_file($file);
 my @set;
 for (@log) {
     next if /^#/;
@@ -26,7 +34,7 @@ for (@log) {
     submat() if @set == 50
 }
 submat() if @set;
-
+my $totally;
 sub submat {
     my $res = lastfm(
         "track.scrobble",
@@ -38,6 +46,9 @@ sub submat {
         say "Consider --bullshit-timestamps" if $res =~ /Timestamp failed/;
         exit;
     }
+    say "Submit a batch of $n";
+    $totally += $n;
     @set = ();
 }
+say "Total: $totally";
 
