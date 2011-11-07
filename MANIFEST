@@ -4,3 +4,4 @@ MANIFEST
 README
 t/Net-LastFMAPI.t
 lib/Net/LastFMAPI.pm
+bin/scrobble-portablog.pl
