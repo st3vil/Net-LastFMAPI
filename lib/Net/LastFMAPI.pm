@@ -187,7 +187,7 @@ sub lastfm {
     my $cache = $cache;
     if ($cache) {
         unless (-d $cache) {
-            our $cache = $cache_dir;
+            $cache = $cache_dir;
             make_path($cache);
         }
         my $file = "$cache/".md5_hex(encode_json(\@_));
