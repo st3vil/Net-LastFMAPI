@@ -390,7 +390,7 @@ L<https://github.com/st3vil/Net-LastFMAPI>
 
 =head1 AUTHOR
 
-Steev Eeeriumn <nostrasteve@gmail.com>
+Steev Eeeriumn <drsteve@cpan.org>
 
 =head1 COPYRIGHT
 
