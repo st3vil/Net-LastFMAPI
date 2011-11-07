@@ -1,24 +1,29 @@
-README for Net::LastFMAPI
-=========================
+Net-LastFMAPI version 0.01
+==========================
 
 Functions for interacting with the LastFM API version 2.0.
 
-Installing
-----------
-The application is designed to be installed like a CPAN module; so use
-the usual:
+INSTALLATION
 
-  perl Makefile.PL
-  make
-  sudo make install
+To install this module type the following:
 
-The CPAN module dependencies will be highlighted during the first
-command. If you do not have 'sudo' installed, you can use:
+   perl Makefile.PL
+   make
+   make test
+   make install
 
-  su root -c make install
+DEPENDENCIES
 
-License and credits
--------------------
+This module requires these other modules and libraries:
+
+  LWP::UserAgent
+  Digest::MD5
+  JSON::XS
+  File::Slurp
+  File::Path
+
+COPYRIGHT AND LICENCE
+
    Copyright (c) 2011, Steev Eeeriumn. All Rights Reserved.
  This module is free software. It may be used, redistributed
 and/or modified under the terms of the Perl Artistic License

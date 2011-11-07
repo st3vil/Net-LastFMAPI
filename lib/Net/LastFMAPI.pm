@@ -12,7 +12,7 @@ use Exporter 'import';
 our @EXPORT = ('lastfm');
 use Carp;
 
-our $VERSION = 0.4;
+our $VERSION = 0.1;
 our $url = 'http://ws.audioscrobbler.com/2.0/';
 our $api_key = 'dfab9b1c7357c55028c84b9a8fb68880';
 our $secret = 'd004c86dcfa8ef4c3977b04f558535f2';
@@ -342,36 +342,55 @@ Makes requests to http://ws.audioscrobbler.com/2.0/ and returns the result.
 
 Takes care of POSTing to write methods, doing authorisation when needed.
 
-Dies upon error.
+Dies if something went obviously wrong.
 
-Will create an authorised session when needed, so unless you alter the subroutine
-B<talk_authentication> it will print instructions to visit a link in your browser
-to authorise itself with whoever is logged in.
+=head1 THE SESSION KEY
 
-After creating that session it is saved in the symlink
-B<$ENV{HOME}/.net-lastfmapi-sessionkey>, you could alter B<load_save_sessionkey>
-to make this happen another way.
+  $Net::LastFMAPI::session_key = "secret"
 
-Setting B<$Net::LastFMAPI::json> to a true value will automatically add
-B<format =E<gt> "json"> to every request AND decode the result into perl data for you.
-Not all methods support JSON.
+It will be sought when an authorised request is needed.
+
+If it is not saved then on-screen instructions should be followed to authorise
+with whoever is logged in to L<last.fm>.
+
+It is saved in the symlink B<$ENV{HOME}/.net-lastfmapi-sessionkey>. This is
+probably fine.
+
+Consider altering the subroutines B<talk_authentication>, B<load_save_sessionkey>,
+or simply setting the B<$Net::LastFMAPI::session_key> before needing it.
+
+=head1 RETURN PERL DATA
+
+  $Net::LastFMAPI::json = 1
+  
+This will automatically add B<format =E<gt> "json"> to every request B<and decode
+the result> into perl data for you.
+
+Not all methods support JSON. Beware of "@attr" and empty elements turned into
+whitespace strings instead of empty arrays.
+
+=head1 CACHING
+
+  $Net::LastFMAPI::cache = 1
+
+  $Net::LastFMAPI::cache_dir = "$ENV{HOME}/.net-lastfmapi-cache/"
+
+Does caching. Default cache directory is shown. Good for development.
 
 =head1 SEE ALSO
 
 L<Net::LastFM> doesn't handle sessions for you, won't POST to write methods
 
-These are for the 1.2 API which is deprecated and I had no luck with them:
-L<WebService::LastFM>
-L<Music::Audioscrobbler::Submit>
-L<Net::LastFM::Submission>
+I had no luck with the 1.2 API modules: L<WebService::LastFM>,
+L<Music::Audioscrobbler::Submit>, L<Net::LastFM::Submission>
 
 =head1 BUGS/CODE
 
-L<https://github.com/st3vil/net-lastfmapi>
+L<https://github.com/st3vil/Net-LastFMAPI>
 
 =head1 AUTHOR
 
-Steev Eeeriumn
+Steev Eeeriumn <nostrasteve@gmail.com>
 
 =head1 COPYRIGHT
 
