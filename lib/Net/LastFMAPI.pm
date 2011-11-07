@@ -5,6 +5,8 @@ use v5.10;
 use LWP::UserAgent;
 use Digest::MD5 'md5_hex';
 use JSON::XS;
+use File::Slurp;
+use File::Path 'make_path';
 use URI;
 use Exporter 'import';
 our @EXPORT = ('lastfm');
@@ -17,8 +19,11 @@ our $secret = 'd004c86dcfa8ef4c3977b04f558535f2';
 our $session_key; # see load_save_sessionkey()
 our $ua = new LWP::UserAgent(agent => "Net::LastFMAPI/$VERSION");
 our $username; # not important
-our $json = 0;
 
+our $json = 0;
+our $cache = 0;
+
+our $cache_dir = "$ENV{HOME}/.net-lastfmapi-cache/";
 our $sk_symlink = "$ENV{HOME}/.net-lastfmapi-sessionkey";
 sub load_save_sessionkey { # see get_session_key()
     my $key = shift;
@@ -30,7 +35,17 @@ sub load_save_sessionkey { # see get_session_key()
     }
     $session_key = $key;
 }
-
+sub dumpfile {
+    my $file = shift;
+    my $json = encode_json(shift);
+    write_file($file, $json);
+}
+sub loadfile {
+    my $file = shift;
+    my $json = read_file($file);
+    decode_json($json);
+}
+#{{{
 our $methods = {
     'album.addTags' => { auth => 1, post => 1, signed => 1 },
     'album.getBuylinks' => {  },
@@ -165,9 +180,26 @@ our $methods = {
     'venue.getPastEvents' => {  },
     'venue.search' => {  },
 };
-
+#}}}
 sub lastfm {
     my ($method, @params) = @_;
+
+    my $cache = $cache;
+    if ($cache) {
+        unless (-d $cache) {
+            our $cache = $cache_dir;
+            make_path($cache);
+        }
+        my $file = "$cache/".md5_hex(encode_json(\@_));
+        if (-f $file) {
+            my $data = loadfile($file);
+            return $data->{content}
+        }
+        else {
+            $cache = $file
+        }
+    }
+
     my %params;
     my $i = 0;
     while (my $p = shift @params) {
@@ -209,15 +241,18 @@ sub lastfm {
     my $content = $res->decoded_content;
     unless ($res->is_success &&
         ($params{format} ne "xml" || $content =~ /<lfm status="ok">/)) {
+        no warnings "once";
         $DB::single = 1;
         croak "Something went wrong:\n$content";
     }
+
     if ($params{format} eq "json") {
-        return decode_json($content);
+        $content = decode_json($content);
     }
-    else {
-        return $content;
+    if ($cache) {
+        dumpfile($cache, {content => $content});
     }
+    return $content;
 }
 
 sub sessionise {
