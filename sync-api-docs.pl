@@ -13,7 +13,6 @@ my @methods;
 pQuery("http://www.last.fm/api/intro")
 ->find("div#leftcol .wspanel ul li")
 ->each(sub{
-    sleep 1;
     $_ = pQuery($_)->html;
     say "studying: $_";
     m{<a href="(/api/show/\?service=\d+)">(.+)</a>} || die "not <a>: $_";
@@ -28,17 +27,26 @@ pQuery("http://www.last.fm/api/intro")
         signed => $sig,
         auth => $auth,
     };
+    sleep 1;
 });
 
 
 my @new;
 my @old = read_file($file);
-push @new, shift @old until $new[-1] =~ /^my \$methods = {/;
+push @new, shift @old until $new[-1] =~ /^our \$methods = {/;
 say shift @old until $old[0] =~ /^};/;
 
 for my $m (@methods) {
-    my $attributes = join ", ", map { "$_ => 1" } grep { $m->{$_} } qw{auth post signed};
-    push @new, sprintf("    '%s' => { %s },\n", $m->{method}, $attributes);
+    my $method = delete $m->{method};
+    if ($method eq "user.getInfo") {
+        $m->{auth} = 1;
+    }
+    push @new, sprintf("    '%s' => {%s},\n",
+        $method,
+        join (", ", map { "$_ => $m->{$_}" }
+                    grep { $m->{$_} } qw{auth post signed}
+        ),
+    );
 }
 push @new, @old;
 write_file($file, @new);

@@ -155,7 +155,7 @@ our $methods = {
     'user.getBannedTracks' => {  },
     'user.getEvents' => {  },
     'user.getFriends' => {  },
-    'user.getInfo' => {  },
+    'user.getInfo' => { auth => 1 },
     'user.getLovedTracks' => {  },
     'user.getNeighbours' => {  },
     'user.getNewReleases' => {  },
@@ -257,7 +257,10 @@ sub lastfm {
 
 sub sessionise {
     my $params = shift;
-    return unless $methods->{$params->{method}}->{auth};
+    my $m = $methods->{$params->{method}};
+    unless (delete $params->{auth} || $m && $m->{auth}) {
+        return
+    }
     $params->{sk} = get_session_key();
 }
 
