@@ -1,5 +1,9 @@
 Revision history for Perl extension Net::LastFMAPI.
 
+0.2  Thu Nov 10 08:39:55 2011
+	- refresh session key if env $NET_LASTFMAPI_REAUTH
+	- cmd.pl command line interface
+
 0.1  Tue Nov  8 01:04:46 2011
 	- original version; created by h2xs 1.23 with options
 		-AX Net::LastFMAPI
