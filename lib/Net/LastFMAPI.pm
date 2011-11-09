@@ -183,6 +183,7 @@ our $methods = {
 #}}}
 sub lastfm {
     my ($method, @params) = @_;
+    $method = lc($method);
 
     my $cache = $cache;
     if ($cache) {
@@ -219,7 +220,7 @@ sub lastfm {
     $params{format} ||= "json" if $json;
     delete $params{format} if $params{format} && $params{format} eq "xml";
 
-    unless (exists $methods->{lc $method}) {
+    unless (exists $methods->{$method}) {
         carp "method $method is not known to Net::LastFMAPI"
     }
 
@@ -228,7 +229,7 @@ sub lastfm {
     sign(\%params);
 
     my $res;
-    if ($methods->{lc $method}->{post}) {
+    if ($methods->{$method}->{post}) {
         $res = $ua->post($url, Content => \%params);
     }
     else {
@@ -243,7 +244,12 @@ sub lastfm {
         ($params{format} ne "xml" || $content =~ /<lfm status="ok">/)) {
         no warnings "once";
         $DB::single = 1;
-        croak "Something went wrong:\n$content";
+        my $consider;
+        if ($content =~ /Invalid session key - Please re-authenticate/) {
+            $consider = "setting NET_LASTFMAPI_REAUTH=1 to re-authenticate";
+        }
+        croak "Something went wrong:\n$content".
+            ($consider?"\n\nConsider $consider":"");
     }
 
     if ($params{format} eq "json") {
@@ -257,7 +263,7 @@ sub lastfm {
 
 sub sessionise {
     my $params = shift;
-    my $m = $methods->{lc $params->{method}};
+    my $m = $methods->{$params->{method}};
     unless (delete $params->{auth} || $m && $m->{auth}) {
         return
     }
@@ -308,11 +314,28 @@ sub talk_authorisation {
 
 sub sign {
     my $params = shift;
-    return unless $methods->{lc $params->{method}}->{signed};
+    return unless $methods->{$params->{method}}->{signed};
     my $jumble = join "", map { $_ => $params->{$_} } sort keys %$params;
     my $hash = md5_hex($jumble.$secret);
     $params->{api_sig} = $hash;
 }
+
+if ($ENV{NET_LASTFMAPI_REAUTH}) {
+    say "Re-authenticatinging...";
+    if (readlink($sk_symlink)) {
+        unlink($sk_symlink);
+    }
+    undef $session_key;
+    get_session_key();
+    say "Got session key: $session_key";
+    say "Unsetting NET_LASTFMAPI_REAUTH...";
+    say delete $ENV{NET_LASTFMAPI_REAUTH};
+    say "Done";
+    exit;
+}
+
+1;
+
 __END__
 
 =head1 NAME
