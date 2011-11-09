@@ -5,6 +5,7 @@ use v5.10;
 use File::Slurp;
 use lib "$ENV{HOME}/pquery-pm/lib";
 use pQuery;
+use Time::HiRes "usleep";
 
 my $file = "lib/Net/LastFMAPI.pm";
 -f $file or die "where's the $file at?";
@@ -27,7 +28,7 @@ pQuery("http://www.last.fm/api/intro")
         signed => $sig,
         auth => $auth,
     };
-    sleep 1;
+    usleep 10000;
 });
 
 
@@ -37,8 +38,8 @@ push @new, shift @old until $new[-1] =~ /^our \$methods = {/;
 say shift @old until $old[0] =~ /^};/;
 
 for my $m (@methods) {
-    my $method = delete $m->{method};
-    if ($method eq "user.getInfo") {
+    my $method = lc delete $m->{method};
+    if ($method eq "user.getinfo") {
         $m->{auth} = 1;
     }
     push @new, sprintf("    '%s' => {%s},\n",
