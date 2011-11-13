@@ -5,7 +5,8 @@ use strict;
 use warnings;
 use v5.10;
 use File::Slurp;
-use lib "../lib";
+use FindBin '$Bin';
+use lib "$Bin/../lib";
 use Net::LastFMAPI;
 
 my $bullytime;
