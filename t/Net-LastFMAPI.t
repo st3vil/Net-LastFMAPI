@@ -72,7 +72,7 @@ my $res = lastfm("user.getInfo");
 
 is($uaaction[-1]->[0], "get", "user info GETed");
 like($uaaction[-1]->[1], qr{format=json$}, "JSON requested");
-is($uaaction[-1]->[1], 'http://ws.audioscrobbler.com/2.0/?api_key=dfab9b1c7357c55028c84b9a8fb68880&method=user.getInfo&sk=32d3825593e0636a8bd59343911569ba&format=json', "correct URI");
+is($uaaction[-1]->[1], 'http://ws.audioscrobbler.com/2.0/?api_key=dfab9b1c7357c55028c84b9a8fb68880&method=user.getinfo&sk=32d3825593e0636a8bd59343911569ba&format=json', "correct URI");
 ok(ref $res eq "HASH", "decoded JSON returned");
 is($res->{user}->{name}, "298563498653468", "username");
 is($res->{user}->{country}, "NZ", "New Zealand!");
@@ -113,6 +113,6 @@ my $res1 = lastfm("user.getInfo", user => "tburny", format => "xml");
 
 is($uaaction[-1]->[0], "get", "user info GETed");
 unlike($uaaction[-1]->[1], qr{format=xml}, "format=xml not requested");
-is($uaaction[-1]->[1], 'http://ws.audioscrobbler.com/2.0/?api_key=dfab9b1c7357c55028c84b9a8fb68880&user=tburny&method=user.getInfo&sk=32d3825593e0636a8bd59343911569ba', "correct URI");
+is($uaaction[-1]->[1], 'http://ws.audioscrobbler.com/2.0/?api_key=dfab9b1c7357c55028c84b9a8fb68880&user=tburny&method=user.getinfo&sk=32d3825593e0636a8bd59343911569ba', "correct URI");
 like($res1, qr{<lfm status="ok">}, "decoded JSON returned");
 like($res1, qr{<name>tburny</name>}, "correct user");
