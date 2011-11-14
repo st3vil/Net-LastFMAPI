@@ -12,7 +12,7 @@ use Exporter 'import';
 our @EXPORT = ('lastfm');
 use Carp;
 
-our $VERSION = 0.2;
+our $VERSION = 0.3;
 our $url = 'http://ws.audioscrobbler.com/2.0/';
 our $api_key = 'dfab9b1c7357c55028c84b9a8fb68880';
 our $secret = 'd004c86dcfa8ef4c3977b04f558535f2';

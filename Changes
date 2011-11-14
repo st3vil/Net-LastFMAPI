@@ -1,5 +1,9 @@
 Revision history for Perl extension Net::LastFMAPI.
 
+0.3  Mon Nov 14 20:53:17 2011
+	- scrobble.pl command line scrobbler
+	- test fix
+
 0.2  Thu Nov 10 08:39:55 2011
 	- refresh session key if env $NET_LASTFMAPI_REAUTH
 	- cmd.pl command line interface
