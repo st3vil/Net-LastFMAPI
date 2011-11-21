@@ -3,7 +3,8 @@ use strict;
 use warnings;
 use v5.10;
 use File::Slurp;
-use lib "$ENV{HOME}/pquery-pm/lib";
+use File::HomeDir 'my_home';
+use lib my_home()."/pquery-pm/lib";
 use pQuery;
 use Time::HiRes "usleep";
 

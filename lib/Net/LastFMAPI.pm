@@ -8,6 +8,7 @@ use JSON::XS;
 use YAML::Syck;
 use File::Slurp;
 use File::Path 'make_path';
+use File::HomeDir 'my_home';
 use URI;
 use Exporter 'import';
 our @EXPORT = ('lastfm', 'lastfm_config', 'lastfm_iter');
@@ -22,8 +23,8 @@ our $ua = new LWP::UserAgent(agent => "Net::LastFMAPI/$VERSION");
 our $username; # not important
 our $xml = 0;
 our $cache = 0;
-our $cache_dir = "$ENV{HOME}/.net-lastfmapi-cache/";
-our $sk_symlink = "$ENV{HOME}/.net-lastfmapi-sessionkey";
+our $cache_dir = my_home()."/.net-lastfmapi-cache/";
+our $sk_symlink = my_home()."/.net-lastfmapi-sessionkey";
 
 sub load_save_sessionkey { # see get_session_key()
     my $key = shift;
@@ -497,7 +498,7 @@ It will be sought when an authorised request is needed.
 If it is not saved then on-screen instructions should be followed to authorise
 with whoever is logged in to L<last.fm>.
 
-It is saved in the symlink B<$ENV{HOME}/.net-lastfmapi-sessionkey>. This is
+It is saved in the symlink B<File::HomeDir::my_home()/.net-lastfmapi-sessionkey>. This is
 probably fine.
 
 Consider altering the subroutines B<talk_authentication>, B<load_save_sessionkey>,
@@ -515,7 +516,7 @@ hacking, though, getting perl data is much more convenient.
 
   $Net::LastFMAPI::cache = 1
 
-  $Net::LastFMAPI::cache_dir = "$ENV{HOME}/.net-lastfmapi-cache/"
+  $Net::LastFMAPI::cache_dir = File::HomeDir::my_home()."/.net-lastfmapi-cache/"
 
 Does caching. Default cache directory is shown. Good for development.
 
