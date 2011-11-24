@@ -202,22 +202,6 @@ sub lastfm {
     my ($method, @params) = @_;
     $method = lc($method);
 
-    my $cache = $cache;
-    if ($cache) {
-        unless (-d $cache) {
-            $cache = $cache_dir;
-            make_path($cache);
-        }
-        my $file = "$cache/".md5_hex(encode_json(\@_));
-        if (-f $file) {
-            my $data = loadfile($file);
-            return _rowify_content( $data->{content} );
-        }
-        else {
-            $cache = $file
-        }
-    }
-
     my %params;
     my $i = 0;
     while (my $p = shift @params) {
@@ -249,6 +233,23 @@ sub lastfm {
     sign(\%params);
 
     %last_params = %params;
+
+    my $cache = $cache;
+    if ( $cache ) {
+        unless ( -d $cache ) {
+            $cache = $cache_dir;
+            make_path( $cache );
+        }
+        my $cache_key_json = encode_json( [ map { $_, $params{$_} } sort keys %params ] );
+        my $file = "$cache/" . md5_hex( $cache_key_json );
+        if ( -f $file ) {
+            my $data = loadfile( $file );
+            return _rowify_content( $data->{content} );
+        }
+
+        $cache = $file;
+    }
+
     my $res;
     if ($methods->{$method}->{post}) {
         $res = $ua->post($url, Content => \%params);
