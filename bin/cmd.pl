@@ -7,6 +7,7 @@ use FindBin '$Bin';
 use lib "$Bin/../lib";
 use Net::LastFMAPI;
 use JSON::XS;
+use YAML::Syck;
 
 die "usage: $0 user.whatEver something=nothing nothing=Some Things etc=etc\n" unless @ARGV;
 if (exists $Net::LastFMAPI::methods->{lc($ARGV[0])}) {
@@ -18,7 +19,7 @@ if (exists $Net::LastFMAPI::methods->{lc($ARGV[0])}) {
     }
     my $res = lastfm($method, %params);
     if (ref $res eq "HASH") {
-        $res = encode_json($res);
+        $res = Dump($res);
     }
     say $res
 }

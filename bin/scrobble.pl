@@ -21,6 +21,7 @@ $params{album} = shift @track if @track;
 my $res = lastfm(
     "track.scrobble",
     %params,
+    format => "xml",
     timestamp => scalar(time()),
 );
 unless ($res =~ /accepted="1"/) {

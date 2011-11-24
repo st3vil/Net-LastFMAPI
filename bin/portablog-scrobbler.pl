@@ -39,6 +39,7 @@ my $totally;
 sub submat {
     my $res = lastfm(
         "track.scrobble",
+        format => "xml",
         @set,
     );
     my $n = @set;

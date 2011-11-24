@@ -19,8 +19,7 @@ our $secret = 'd004c86dcfa8ef4c3977b04f558535f2';
 our $session_key; # see load_save_sessionkey()
 our $ua = new LWP::UserAgent(agent => "Net::LastFMAPI/$VERSION");
 our $username; # not important
-
-our $json = 0;
+our $xml = 0;
 our $cache = 0;
 
 our $cache_dir = "$ENV{HOME}/.net-lastfmapi-cache/";
@@ -217,7 +216,7 @@ sub lastfm {
     }
     $params{method} = $method;
     $params{api_key} = $api_key;
-    $params{format} ||= "json" if $json;
+    $params{format} = "json" unless $params{format} || $xml;
     delete $params{format} if $params{format} && $params{format} eq "xml";
 
     unless (exists $methods->{$method}) {
@@ -345,10 +344,7 @@ Net::LastFMAPI - LastFM API 2.0
 =head1 SYNOPSIS
 
   use Net::LastFMAPI;
-  my $xml = lastfm("artist.getSimilar", artist => "Robbie Basho");
-
-  $Net::LastFMAPI::json = 1;
-  my $data = lastfm(...); # decodes it for you
+  my $perl_data = lastfm("artist.getSimilar", artist => "Robbie Basho");
 
   # sets up a session/gets authorisation when needed for write actions:
   my $res = lastfm(
@@ -357,7 +353,16 @@ Net::LastFMAPI - LastFM API 2.0
       track => "Wounded Knee Soliloquy",
       timestamp => time(),
   );
-  $success = $res =~ m{<scrobbles accepted="1"};
+  $success = $res->{scrobbles}->{'@attr'}->{accepted} == 1;
+
+  my $xml = lastfm(...); # with config value: xml => 1
+  my $xml = lastfm(..., format => "xml");
+  $success = $xml =~ m{<scrobbles accepted="1"};
+
+  # see also:
+  # bin/cmd.pl
+  # bin/scrobble.pl
+  # bin/portablog-scrobbler.pl
 
 =head1 DESCRIPTION
 
@@ -366,6 +371,10 @@ Makes requests to http://ws.audioscrobbler.com/2.0/ and returns the result.
 Takes care of POSTing to write methods, doing authorisation when needed.
 
 Dies if something went obviously wrong.
+
+Can return xml if you like, defaults to returning perl data/requesting json.
+Not all methods support JSON. Beware of "@attr" and empty elements turned into
+whitespace strings instead of empty arrays.
 
 =head1 THE SESSION KEY
 
@@ -382,15 +391,13 @@ probably fine.
 Consider altering the subroutines B<talk_authentication>, B<load_save_sessionkey>,
 or simply setting the B<$Net::LastFMAPI::session_key> before needing it.
 
-=head1 RETURN PERL DATA
+=head1 RETURN XML
 
-  $Net::LastFMAPI::json = 1
-  
-This will automatically add B<format =E<gt> "json"> to every request B<and decode
-the result> into perl data for you.
+  $Net::LastFMAPI::xml = 1
 
-Not all methods support JSON. Beware of "@attr" and empty elements turned into
-whitespace strings instead of empty arrays.
+This will return an xml string to you. You can also set B<format =E<gt> "xml">
+for a particular request. Apparently, not all methods support JSON. For casual
+hacking, though, getting perl data is much more convenient.
 
 =head1 CACHING
 
