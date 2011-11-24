@@ -22,11 +22,13 @@ pQuery("http://www.last.fm/api/intro")
     my $auth = m{This service requires authentication};
     my $sig = m{<span class="param">api_sig</span>};
     my $post = m{must be accessed with an HTTP POST request};
+    my $page = m{<span class="param">page</span>};
     push @methods, {
         method => $method,
         post => $post,
         signed => $sig,
         auth => $auth,
+        page => $page,
     };
     usleep 10000;
 });
@@ -35,7 +37,7 @@ pQuery("http://www.last.fm/api/intro")
 my @new;
 my @old = read_file($file);
 push @new, shift @old until $new[-1] =~ /^our \$methods = {/;
-say shift @old until $old[0] =~ /^};/;
+shift @old until $old[0] =~ /^};/;
 
 for my $m (@methods) {
     my $method = lc delete $m->{method};
@@ -45,7 +47,7 @@ for my $m (@methods) {
     push @new, sprintf("    '%s' => {%s},\n",
         $method,
         join (", ", map { "$_ => $m->{$_}" }
-                    grep { $m->{$_} } qw{auth post signed}
+                    grep { $m->{$_} } qw{auth post signed page}
         ),
     );
 }
