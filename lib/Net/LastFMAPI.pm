@@ -239,6 +239,9 @@ sub lastfm {
     unless (exists $methods->{$method}) {
         carp "method $method is not known to Net::LastFMAPI"
     }
+    elsif (defined $params{page} && !$methods->{$method}->{page}) {
+        carp "method $method is not known to be paginated, but hey"
+    }
 
     sessionise(\%params);
 
@@ -516,7 +519,9 @@ Does caching. Default cache directory is shown. Good for development.
 =head1 PAGINATION
 
   my $iter = lastfm_iter(...);
-  my $row = $iter->();
+  while (my $row = $iter->()) {
+      ...
+  }
 
 Will attempt to extract rows from a response, passing you one at a time,
 keeping going into the next page, and the next...
