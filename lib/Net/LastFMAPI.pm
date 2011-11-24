@@ -298,10 +298,10 @@ sub _rowify_content {
 }
 
 sub extract_rows {
+    my ( $rs ) = @_;
     if (!$last_params{format}) {
         croak "returning rows from xml is not supported";
     }
-    my $rs = $last_response;
     my @rk = keys %$rs;
     my $r = $rs->{$rk[0]};
     my @ks = sort keys %$r;
