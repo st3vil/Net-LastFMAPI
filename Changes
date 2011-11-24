@@ -1,5 +1,11 @@
 Revision history for Perl extension Net::LastFMAPI.
 
+0.4  Thu Nov 24 19:46:48 2011
+	- default to using JSON
+	- add lastfm_config() configurator function
+	- add lastfm_iter() which knows about pagination
+	- link to relevant documentation in errors
+
 0.3  Mon Nov 14 20:53:17 2011
 	- scrobble.pl command line scrobbler
 	- test fix
