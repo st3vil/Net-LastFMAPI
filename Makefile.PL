@@ -10,6 +10,7 @@ WriteMakefile(
 LWP::UserAgent
   Digest::MD5
     JSON::XS
+    YAML::Syck
       File::Slurp
         File::Path
 	  File::HomeDir }
