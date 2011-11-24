@@ -10,7 +10,7 @@ use File::Slurp;
 use File::Path 'make_path';
 use URI;
 use Exporter 'import';
-our @EXPORT = ('lastfm', 'lastfm_config');
+our @EXPORT = ('lastfm', 'lastfm_config', 'lastfm_iter');
 use Carp;
 
 our $VERSION = 0.3;
@@ -194,6 +194,9 @@ our $methods = {
     'venue.search' => {page => 1},
 };
 #}}}
+our %last_params;
+our $last_response;
+our %last_response_meta;
 sub lastfm {
     my ($method, @params) = @_;
     $method = lc($method);
@@ -241,6 +244,7 @@ sub lastfm {
 
     sign(\%params);
 
+    %last_params = %params;
     my $res;
     if ($methods->{$method}->{post}) {
         $res = $ua->post($url, Content => \%params);
@@ -276,7 +280,75 @@ sub lastfm {
     if ($cache) {
         dumpfile($cache, {content => $content});
     }
-    return $content;
+    $last_response = $content;
+    if (wantarray) {
+        return extract_rows($content);
+    }
+    else {
+        return $content;
+    }
+}
+
+sub extract_rows {
+    if (!$last_params{format}) {
+        croak "returning rows from xml is not supported";
+    }
+    my $rs = $last_response;
+    say Dump($rs);
+    my @rk = keys %$rs;
+    my $r = $rs->{$rk[0]};
+    my @ks = sort keys %$r;
+    unless (@rk == 1 && @ks == 2 && $ks[0] eq '@attr') {
+        carp "extracting rows may be broken";
+        if (defined $r->{'#text'} && $r->{'#text'} =~ /^\s+$/
+            && defined $r->{total} && $r->{total} == 0) { # no rows
+            return ();
+        };
+    }
+    %last_response_meta = %{ $r->{$ks[0]} };
+    my $rows = $r->{$ks[1]};
+    if (ref $rows ne "ARRAY") {
+        # schemaless translation of xml to data creates these cases
+        if (ref $rows eq "HASH") { # 1 row
+            $rows = [ $rows ];
+        }
+        elsif ($rows =~ /^\s+$/) { # no rows
+            $rows = [];
+            carp "got whitespacey string instead of empty row array, this happens"
+        }
+        else {
+            carp "not an array of rows... '$rows' returning ()";
+        }
+    }
+    return @$rows;
+}
+
+sub lastfm_iter {
+    my @rows = lastfm(@_, page => 1);
+    my $params = { %last_params };
+    if (!$params->{format}) {
+        croak "paginating xml is not supported";
+    }
+    if (@rows == 0) {
+        return sub { };
+    }
+    my $page = $last_response_meta{page};
+    my $totalpages = $last_response_meta{totalPages};
+    my $next_page = sub {
+        return () if $page++ >= $totalpages;
+        say "page $page";
+        my %params = %$params;
+        $params{page} = $page;
+        my $method = delete $params{method};
+        my @rows = lastfm($method, %params);
+        return @rows;
+    };
+    return sub {
+        unless (@rows) {
+            push @rows, $next_page->();
+        }
+        return shift @rows;
+    }
 }
 
 sub sessionise {
@@ -379,9 +451,19 @@ Net::LastFMAPI - LastFM API 2.0
   my $xml = lastfm(..., format => "xml");
   $success = $xml =~ m{<scrobbles accepted="1"};
 
+  # paginated data can be iterated through per row
+  my $iter = lastfm_iter("artist.getTopTracks", artist => "John Fahey");
+  while (my $row = $iter->()) {
+      my $whole_response = $Net::LastFMAPI::last_response;
+      say $row->{playcount} .": ". $row->name;
+  }
+
+  # wantarray? tries to extract the rows of data for you
+  my @rows = lastfm(...);
+
   # see also:
-  # bin/cmd.pl
-  # bin/scrobble.pl
+  # bin/cmd.pl album.getInfo artist=Laddio Bolocko album=As If In Real Time
+  # bin/scrobble.pl Artist - Track
   # bin/portablog-scrobbler.pl
 
 =head1 DESCRIPTION
@@ -394,7 +476,11 @@ Dies if something went obviously wrong.
 
 Can return xml if you like, defaults to returning perl data/requesting json.
 Not all methods support JSON. Beware of "@attr" and empty elements turned into
-whitespace strings instead of empty arrays.
+whitespace strings instead of empty arrays, single elements turned into a hash
+instead of an array of one hash.
+
+The below configurables can be set by k => v hash to C<lastfm_config> if you
+prefer.
 
 =head1 THE SESSION KEY
 
@@ -426,6 +512,14 @@ hacking, though, getting perl data is much more convenient.
   $Net::LastFMAPI::cache_dir = "$ENV{HOME}/.net-lastfmapi-cache/"
 
 Does caching. Default cache directory is shown. Good for development.
+
+=head1 PAGINATION
+
+  my $iter = lastfm_iter(...);
+  my $row = $iter->();
+
+Will attempt to extract rows from a response, passing you one at a time,
+keeping going into the next page, and the next...
 
 =head1 SEE ALSO
 
