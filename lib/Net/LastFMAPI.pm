@@ -5,6 +5,7 @@ use v5.10;
 use LWP::UserAgent;
 use Digest::MD5 'md5_hex';
 use JSON::XS;
+use YAML::Syck;
 use File::Slurp;
 use File::Path 'make_path';
 use URI;
@@ -254,18 +255,23 @@ sub lastfm {
     my $content = $res->decoded_content;
     unless ($res->is_success &&
         ($params{format} ne "xml" || $content =~ /<lfm status="ok">/)) {
-        no warnings "once";
+        EARORR:
+        $DB::single = 0;
         $DB::single = 1;
         my $consider;
         if ($content =~ /Invalid session key - Please re-authenticate/) {
             $consider = "setting NET_LASTFMAPI_REAUTH=1 to re-authenticate";
         }
-        croak "Something went wrong:\n$content".
-            ($consider?"\n\nConsider $consider":"");
+        croak "Something went wrong:\n$content\n".
+            ($consider?"\nConsider $consider":"");
     }
 
     if ($params{format} eq "json") {
         $content = decode_json($content);
+        if ($content->{error}) {
+            $content = Dump($content);
+            goto EARORR;
+        }
     }
     if ($cache) {
         dumpfile($cache, {content => $content});
