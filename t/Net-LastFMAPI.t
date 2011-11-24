@@ -11,6 +11,16 @@ use Storable 'dclone';
 
 $Net::LastFMAPI::session_key = '32d3825593e0636a8bd59343911569ba';
 
+my $actual_api_key = $Net::LastFMAPI::api_key;
+lastfm_config(
+    api_key => "dfab9b1c7357c55028c84b9a8fb68881",
+);
+is($Net::LastFMAPI::api_key, "dfab9b1c7357c55028c84b9a8fb68881", "config item set");
+eval { lastfm_config(invalid => "blah") };
+like($@, qr{^invalid config items: invalid}, "invalid config item");
+$Net::LastFMAPI::api_key = $actual_api_key; 
+$@ = "";
+
 eval {
 lastfm(
     "track.scrobble",
@@ -27,7 +37,7 @@ our @uaaction = ();
 our $response;
 our $uaaction = sub {
     push @uaaction, dclone([@_]);
-    return YouAye->new(content => ($response || '<lfm status="ok">'));
+    return YouAye->new(content => ($response || encode_json({ status => "ok" })));
 };
 package YouAye;
 sub new {
@@ -64,7 +74,6 @@ is($uaaction[-1]->[3]->{api_sig}, "30c3b59dc26c6d67cdb3fef190ea47ba", ", request
 
 
 
-$Net::LastFMAPI::json = 1;
 $response = <<'';
 {"user":{"country":"NZ","registered":{"#text":"2006-03-18 22:44","unixtime":"1142678658"},"subscriber":"0","lang":"en","name":"298563498653468","bootstrap":"0","age":"","image":[{"#text":"http://userserve-ak.last.fm/serve/34/5906980.jpg","size":"small"},{"#text":"http://userserve-ak.last.fm/serve/64/5906980.jpg","size":"medium"},{"#text":"http://userserve-ak.last.fm/serve/126/5906980.jpg","size":"large"},{"#text":"http://userserve-ak.last.fm/serve/252/5906980.jpg","size":"extralarge"}],"playlists":"1","realname":"Steve","playcount":"79231","url":"http://www.last.fm/user/298563498653468","type":"user","id":"3466668","gender":"m"}}
 

@@ -9,7 +9,7 @@ use File::Slurp;
 use File::Path 'make_path';
 use URI;
 use Exporter 'import';
-our @EXPORT = ('lastfm');
+our @EXPORT = ('lastfm', 'lastfm_config');
 use Carp;
 
 our $VERSION = 0.3;
@@ -21,9 +21,9 @@ our $ua = new LWP::UserAgent(agent => "Net::LastFMAPI/$VERSION");
 our $username; # not important
 our $xml = 0;
 our $cache = 0;
-
 our $cache_dir = "$ENV{HOME}/.net-lastfmapi-cache/";
 our $sk_symlink = "$ENV{HOME}/.net-lastfmapi-sessionkey";
+
 sub load_save_sessionkey { # see get_session_key()
     my $key = shift;
     if ($key) {
@@ -34,6 +34,19 @@ sub load_save_sessionkey { # see get_session_key()
     }
     $session_key = $key;
 }
+
+sub lastfm_config {
+    my %configs = @_;
+    for my $k (qw{api_key secret session_key ua xml cache cache_dir sk_symlink}) {
+        my $v = delete $configs{$k};
+        if (defined $v) {
+            no strict 'refs';
+            ${$k} = $v;
+        }
+    }
+    croak "invalid config items: ".join(", ", keys %configs) if keys %configs;
+}
+
 sub dumpfile {
     my $file = shift;
     my $json = encode_json(shift);
