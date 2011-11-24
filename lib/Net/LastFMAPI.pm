@@ -314,7 +314,8 @@ sub talk_authorisation {
 sub sign {
     my $params = shift;
     return unless $methods->{$params->{method}}->{signed};
-    my $jumble = join "", map { $_ => $params->{$_} } sort keys %$params;
+    my $jumble = join "", map { $_ => $params->{$_} }
+        grep { !($_ eq "format" || $_ eq "callback") } sort keys %$params;
     my $hash = md5_hex($jumble.$secret);
     $params->{api_sig} = $hash;
 }
