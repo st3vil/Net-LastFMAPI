@@ -16,9 +16,11 @@ pQuery("http://www.last.fm/api/intro")
 ->each(sub{
     $_ = pQuery($_)->html;
     say "studying: $_";
-    m{<a href="(/api/show/\?service=\d+)">(.+)</a>} || die "not <a>: $_";
+    m{<a href="/api/show/\?service=(\d+)">(.+)</a>} || die "not <a>: $_";
+    my $id = $1;
     my $method = $2;
-    $_ = pQuery("http://www.last.fm$1")->find("div#wsdescriptor")->html;
+    $_ = pQuery("http://www.last.fm/api/show/?service=$1")
+        ->find("div#wsdescriptor")->html;
     my $auth = m{This service requires authentication};
     my $sig = m{<span class="param">api_sig</span>};
     my $post = m{must be accessed with an HTTP POST request};
@@ -29,6 +31,7 @@ pQuery("http://www.last.fm/api/intro")
         signed => $sig,
         auth => $auth,
         page => $page,
+        id => $id,
     };
     usleep 10000;
 });
@@ -47,7 +50,7 @@ for my $m (@methods) {
     push @new, sprintf("    '%s' => {%s},\n",
         $method,
         join (", ", map { "$_ => $m->{$_}" }
-                    grep { $m->{$_} } qw{auth post signed page}
+                    grep { $m->{$_} } qw{auth post signed page id}
         ),
     );
 }
