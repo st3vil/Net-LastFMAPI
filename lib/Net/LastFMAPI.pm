@@ -301,7 +301,6 @@ sub extract_rows {
         croak "returning rows from xml is not supported";
     }
     my $rs = $last_response;
-    say Dump($rs);
     my @rk = keys %$rs;
     my $r = $rs->{$rk[0]};
     my @ks = sort keys %$r;
@@ -343,7 +342,6 @@ sub lastfm_iter {
     my $totalpages = $last_response_meta{totalPages};
     my $next_page = sub {
         return () if $page++ >= $totalpages;
-        say "page $page";
         my %params = %$params;
         $params{page} = $page;
         my $method = delete $params{method};
