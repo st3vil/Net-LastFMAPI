@@ -211,7 +211,7 @@ sub lastfm {
         my $file = "$cache/".md5_hex(encode_json(\@_));
         if (-f $file) {
             my $data = loadfile($file);
-            return $data->{content}
+            return _rowify_content( $data->{content} );
         }
         else {
             $cache = $file
@@ -288,12 +288,13 @@ sub lastfm {
         dumpfile($cache, {content => $content});
     }
     $last_response = $content;
-    if (wantarray) {
-        return extract_rows($content);
-    }
-    else {
-        return $content;
-    }
+    return _rowify_content( $content );
+}
+
+sub _rowify_content {
+    my ( $content ) = @_;
+    return extract_rows( $content ) if wantarray;
+    return $content;
 }
 
 sub extract_rows {
