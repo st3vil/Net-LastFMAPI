@@ -433,7 +433,7 @@ if ($ENV{NET_LASTFMAPI_REAUTH}) {
     get_session_key();
     say "Got session key: $session_key";
     say "Unsetting NET_LASTFMAPI_REAUTH...";
-    say delete $ENV{NET_LASTFMAPI_REAUTH};
+    delete $ENV{NET_LASTFMAPI_REAUTH};
     say "Done";
     exit;
 }
