@@ -505,6 +505,7 @@ The session key will be sought when an authorised request is needed. See L<CONFI
 
 If it is not configured or saves in a symlink then on-screen instructions should
 be followed to authorise in a web browser with whoever is logged in to L<last.fm>.
+See L<http://www.last.fm/api/desktopauth>.
 
 It is saved in the symlink B<File::HomeDir::my_home()/.net-lastfmapi-sessionkey>
 by default. This is probably fine.
