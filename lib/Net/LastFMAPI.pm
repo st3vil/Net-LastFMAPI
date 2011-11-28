@@ -491,44 +491,55 @@ Takes care of POSTing to write methods, doing authorisation when needed.
 
 Dies if something went obviously wrong.
 
-Can return xml if you like, defaults to returning perl data/requesting json.
-Not all methods support JSON. Beware of "@attr" and empty elements turned into
-whitespace strings instead of empty arrays, single elements turned into a hash
-instead of an array of one hash.
+Can return xml if you like, defaults to returning perl data (requesting json).
+Beware of "@attr" and empty elements turned into whitespace strings instead of
+empty arrays, single elements turned into a hash instead of an array of one hash.
 
-The below configurables can be set by k => v hash to C<lastfm_config> if you
-prefer.
+=head1 SESSION KEY AND AUTHORISATION
 
-=head1 THE SESSION KEY
+  lastfm_config(
+      session_key => $key,
+  );
 
-  $Net::LastFMAPI::session_key = "secret"
+The session key will be sought when an authorised request is needed. See L<CONFIG>.
 
-It will be sought when an authorised request is needed.
+If it is not configured or saves in a symlink then on-screen instructions should
+be followed to authorise in a web browser with whoever is logged in to L<last.fm>.
 
-If it is not saved then on-screen instructions should be followed to authorise
-with whoever is logged in to L<last.fm>.
-
-It is saved in the symlink B<File::HomeDir::my_home()/.net-lastfmapi-sessionkey>. This is
-probably fine.
+It is saved in the symlink B<File::HomeDir::my_home()/.net-lastfmapi-sessionkey>
+by default. This is probably fine.
 
 Consider altering the subroutines B<talk_authentication>, B<load_save_sessionkey>,
-or simply setting the B<$Net::LastFMAPI::session_key> before needing it.
-
-=head1 RETURN XML
-
-  $Net::LastFMAPI::xml = 1
-
-This will return an xml string to you. You can also set B<format =E<gt> "xml">
-for a particular request. Apparently, not all methods support JSON. For casual
-hacking, though, getting perl data is much more convenient.
+or simply configuring (see L<CONFIG>) before needing it.
 
 =head1 CACHING
 
-  $Net::LastFMAPI::cache = 1
+  lastfm_config(
+      # to enable caching
+      cache => 1,
+      # default:
+      cache_dir => File::HomeDir::my_home()."/.net-lastfmapi-cache/",
+  );
 
-  $Net::LastFMAPI::cache_dir = File::HomeDir::my_home()."/.net-lastfmapi-cache/"
+Good for development.
 
-Does caching. Default cache directory is shown. Good for development.
+=head1 RETURNING ROWS
+
+  my @artists = lastfm("artist.getSimilar", ...);
+
+Call C<lastfm> in list context. Attempts to extract for you the rows inside the
+response. The whole response is in C<$Net::LastFMAPI::last_response>. See also
+L<PAGINATION>
+
+=head1 RETURN XML
+
+  lastfm_config(xml => 1);
+  # or
+  lastfm(..., format => "xml"):
+
+This will return an xml string to you. You can also set B<format =E<gt> "xml">
+for a particular request. Default format is JSON, as getting perl data is much
+from the C<lastfm> method is more casual.
 
 =head1 PAGINATION
 
@@ -539,6 +550,39 @@ Does caching. Default cache directory is shown. Good for development.
 
 Will attempt to extract rows from a response, passing you one at a time,
 keeping going into the next page, and the next...
+
+=head1 CONFIG
+
+  lastfm_config(
+      # associates the request with a user
+      # got with their permission initially
+      session_key => $key,
+
+      # these are explained elsewhere in this pod
+      xml => 1,
+      cache => 1,
+      cache_dir => $path,
+
+
+      # for your own api account see http://www.last.fm/api/account
+      # you can use this module's (default) api account fine
+      api_key => $your_api_key,
+      secret => $your_secret,
+
+      # LWP::UserAgent-sorta thing
+      ua => $ua,
+
+      # default File::HomeDir::my_home()/.net-lastfmapi-sessionkey
+      sk_symlink => $path,
+  );
+
+B<cache> and B<cache_dir> are likely most popular, see L<CACHING>.
+
+This module can handle the B<session_key> fine, see L<SESSION KEY AND AUTHORISATION>.
+
+B<api_key> and B<secret> are for representing this module on the page where the
+user authorises their account in the process of acquiring a new B<session_key>.
+You might want to have your own identity in there.
 
 =head1 SEE ALSO
 
