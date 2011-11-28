@@ -471,8 +471,8 @@ Net::LastFMAPI - LastFM API 2.0
   # paginated data can be iterated through per row
   my $iter = lastfm_iter("artist.getTopTracks", artist => "John Fahey");
   while (my $row = $iter->()) {
+      say $row->{playcount} .": ". $row->{name};
       my $whole_response = $Net::LastFMAPI::last_response;
-      say $row->{playcount} .": ". $row->name;
   }
 
   # wantarray? tries to extract the rows of data for you
