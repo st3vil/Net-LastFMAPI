@@ -262,29 +262,35 @@ sub lastfm {
 
     $params{format} ||= "xml";
     my $content = $res->decoded_content;
+    my $decoded_json = sub { $content = decode_json($content); };
     unless ($res->is_success &&
-        ($params{format} ne "xml" || $content =~ /<lfm status="ok">/)) {
-        EARORR:
-        $DB::single = 0;
-        $DB::single = 1;
-        my $consider = "";
-        if ($content =~ /Invalid session key - Please re-authenticate/) {
-            $consider = "setting NET_LASTFMAPI_REAUTH=1 to re-authenticate";
-        }
-        $consider .= ($consider ? "\n or " : "")."reading the docs: "
-            ."http://www.last.fm/api/show/?service=$methods->{$method}->{id}"
-            if $methods->{$method};
-        croak "Something went wrong:\n$content\n".
-            ($consider?"\nConsider $consider":"");
+        ($params{format} eq "json" && !exists($decoded_json->()->{error})
+        || $params{format} eq "xml" && $content =~ /<lfm status="ok">/)) {
+
+        my @clues;
+        if ($res->is_success) {
+            if ($res->decoded_content =~ /Invalid session key - Please re-authenticate/) {
+                push @clues, "Set NET_LASTFMAPI_REAUTH=1 to re-authenticate";
+            }
+            elsif ($methods->{$method}) {
+                push @clues, "Documentation for the '$method' method:\n"
+                    ."    http://www.last.fm/api/show/?service=$methods->{$method}->{id}"
+            }
         }
 
-    if ($params{format} eq "json") {
-        $content = decode_json($content);
-        if ($content->{error}) {
-            $content = Dump($content);
-            goto EARORR;
+        if (ref $content eq "HASH") {
+            $content = "Content translated JSON->YAML:\n".Dump($content);
         }
+        else {
+            $content = "Content:\n$content";
+        }
+
+        croak join("\n",
+            "Something went wrong.",
+            "HTTP Status: ".$res->status_line,
+            @clues)."\n\n".$content."\n";
     }
+
     if ($cache) {
         dumpfile($cache, {content => $content});
     }
