@@ -288,7 +288,11 @@ sub lastfm {
         croak join("\n",
             "Something went wrong.",
             "HTTP Status: ".$res->status_line,
-            @clues)."\n\n".$content."\n";
+            @clues,
+            "",
+            $content,
+            ""
+        );
     }
 
     if ($cache) {
