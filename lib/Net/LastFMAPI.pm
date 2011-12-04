@@ -262,6 +262,10 @@ sub lastfm {
 
     $params{format} ||= "xml";
     my $content = $res->decoded_content;
+    croak "Last.fm contains faulty data for a piece of data you requested and "
+      . "is unable to return a useful reply. Will be treated as an empty reply."
+      if $content eq qq|""\n|;
+
     my $decoded_json = sub { $content = decode_json($content); };
     unless ($res->is_success &&
         ($params{format} eq "json" && !exists($decoded_json->()->{error})
