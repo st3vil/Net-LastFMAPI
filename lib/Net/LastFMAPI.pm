@@ -309,22 +309,22 @@ sub _rowify_content {
 }
 
 sub extract_rows {
-    my ( $rs ) = @_;
+    my ( $content ) = @_;
     if (!$last_params{format}) {
         croak "returning rows from xml is not supported";
     }
-    my @rk = keys %$rs;
-    my $r = $rs->{$rk[0]};
-    my @ks = sort keys %$r;
-    unless (@rk == 1 && @ks == 2 && $ks[0] eq '@attr') {
+    my @main_keys = keys %{$content};
+    my $main_data = $content->{$main_keys[0]};
+    my @data_keys = sort keys %{$main_data};
+    unless (@main_keys == 1 && @data_keys == 2 && $data_keys[0] eq '@attr') {
         carp "extracting rows may be broken";
-        if (defined $r->{'#text'} && $r->{'#text'} =~ /^\s+$/
-            && defined $r->{total} && $r->{total} == 0) { # no rows
+        if (defined $main_data->{'#text'} && $main_data->{'#text'} =~ /^\s+$/
+            && defined $main_data->{total} && $main_data->{total} == 0) { # no rows
             return ();
         };
     }
-    %last_response_meta = %{ $r->{$ks[0]} };
-    my $rows = $r->{$ks[1]};
+    %last_response_meta = %{ $main_data->{$data_keys[0]} };
+    my $rows = $main_data->{$data_keys[1]};
     if (ref $rows ne "ARRAY") {
         # schemaless translation of xml to data creates these cases
         if (ref $rows eq "HASH") { # 1 row
@@ -606,4 +606,3 @@ Steev Eeeriumn <drsteve@cpan.org>
  This module is free software. It may be used, redistributed
 and/or modified under the terms of the Perl Artistic License
      (see http://www.perl.com/perl/misc/Artistic.html)
-
