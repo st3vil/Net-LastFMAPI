@@ -29,10 +29,10 @@ our $sk_symlink = my_home()."/.net-lastfmapi-sessionkey";
 sub load_save_sessionkey { # see get_session_key()
     my $key = shift;
     if ($key) {
-        symlink($key, $sk_symlink)
+        write_file($sk_symlink, $key);
     }
     else {
-        $key = readlink($sk_symlink);
+        $key = eval{ read_file($sk_symlink) };
     }
     $session_key = $key;
 }
