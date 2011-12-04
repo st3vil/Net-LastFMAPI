@@ -318,10 +318,8 @@ sub extract_rows {
     my @data_keys = sort keys %{$main_data};
     unless (@main_keys == 1 && @data_keys == 2 && $data_keys[0] eq '@attr') {
         carp "extracting rows may be broken";
-        if (defined $main_data->{'#text'} && $main_data->{'#text'} =~ /^\s+$/
-            && defined $main_data->{total} && $main_data->{total} == 0) { # no rows
-            return ();
-        };
+        my ( $text, $total ) = ( $main_data->{'#text'}, $main_data->{total} );
+        return if defined $text && $text =~ /^\s+$/ && defined $total && $total == 0; # no rows
     }
     %last_response_meta = %{ $main_data->{$data_keys[0]} };
     my $rows = $main_data->{$data_keys[1]};
