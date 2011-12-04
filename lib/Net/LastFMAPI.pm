@@ -317,9 +317,9 @@ sub extract_rows {
     my $main_data = $content->{$main_keys[0]};
     my @data_keys = sort keys %{$main_data};
     unless (@main_keys == 1 && @data_keys == 2 && $data_keys[0] eq '@attr') {
-        carp "extracting rows may be broken";
         my ( $text, $total ) = ( $main_data->{'#text'}, $main_data->{total} );
         return if defined $text && $text =~ /^\s+$/ && defined $total && $total == 0; # no rows
+        carp "extracting rows may be broken";
     }
     %last_response_meta = %{ $main_data->{$data_keys[0]} };
     my $rows = $main_data->{$data_keys[1]};
