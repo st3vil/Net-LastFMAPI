@@ -1,5 +1,9 @@
 Revision history for Perl extension Net::LastFMAPI.
 
+0.60 2012-02-07
+	- code preening
+	- symlinks don't work on windows
+
 0.5 2011-11-29
 	- simpler date format in changelog
 	- use File::HomeDir instead of env var
