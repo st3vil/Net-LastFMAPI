@@ -1,5 +1,8 @@
 Revision history for Perl extension Net::LastFMAPI.
 
+0.63 2012-02-07
+	- $VERSION in ""
+
 0.62 2012-02-07
 	- nothing
 
