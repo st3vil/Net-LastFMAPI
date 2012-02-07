@@ -24,22 +24,22 @@ our $username; # not important
 our $xml = 0;
 our $cache = 0;
 our $cache_dir = my_home()."/.net-lastfmapi-cache/";
-our $sk_symlink = my_home()."/.net-lastfmapi-sessionkey";
+our $sk_savefile = my_home()."/.net-lastfmapi-sessionkey";
 
 sub load_save_sessionkey { # see get_session_key()
     my $key = shift;
     if ($key) {
-        write_file($sk_symlink, $key);
+        write_file($sk_savefile, $key);
     }
     else {
-        $key = eval{ read_file($sk_symlink) };
+        $key = eval{ read_file($sk_savefile) };
     }
     $session_key = $key;
 }
 
 sub lastfm_config {
     my %configs = @_;
-    for my $k (qw{api_key secret session_key ua xml cache cache_dir sk_symlink}) {
+    for my $k (qw{api_key secret session_key ua xml cache cache_dir sk_savefile}) {
         my $v = delete $configs{$k};
         if (defined $v) {
             no strict 'refs';
@@ -432,8 +432,8 @@ sub sign {
 
 if ($ENV{NET_LASTFMAPI_REAUTH}) {
     say "Re-authenticatinging...";
-    if (readlink($sk_symlink)) {
-        unlink($sk_symlink);
+    if (-e $sk_savefile) {
+        unlink($sk_savefile);
     }
     undef $session_key;
     get_session_key();
@@ -505,11 +505,11 @@ empty arrays, single elements turned into a hash instead of an array of one hash
 
 The session key will be sought when an authorised request is needed. See L<CONFIG>.
 
-If it is not configured or saves in a symlink then on-screen instructions should
-be followed to authorise in a web browser with whoever is logged in to L<last.fm>.
+If it is not configured or saved then on-screen instructions should be followed to
+authorise in a web browser with whoever is logged in to L<last.fm>.
 See L<http://www.last.fm/api/desktopauth>.
 
-It is saved in the symlink B<File::HomeDir::my_home()/.net-lastfmapi-sessionkey>
+It is saved in the file B<File::HomeDir::my_home()/.net-lastfmapi-sessionkey>
 by default. This is probably fine.
 
 Consider altering the subroutines B<talk_authentication>, B<load_save_sessionkey>,
@@ -576,7 +576,7 @@ keeping going into the next page, and the next...
       ua => $ua,
 
       # default File::HomeDir::my_home()/.net-lastfmapi-sessionkey
-      sk_symlink => $path,
+      sk_savefile => $path,
   );
 
 B<cache> and B<cache_dir> are likely most popular, see L<CACHING>.
